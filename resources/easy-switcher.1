@@ -1,0 +1,85 @@
+.\" Manpage for easy-switcher
+.TH EASY-SWITCHER 1 "2025-10-15" "version 0.5" "User Commands"
+.SH NAME
+easy-switcher \- keyboard layout switcher and text correction utility
+
+.SH SYNOPSIS
+.B easy-switcher
+[\fIOPTION\fR]
+
+.SH DESCRIPTION
+.B easy-switcher
+is a daemon and configuration tool to manage keyboard layouts, convert input keys,
+and ignore specific input devices. It reads configuration from
+.I /etc/easy-switcher/default2.conf
+and can run in debug mode to show detailed input/output events.
+
+.SH OPTIONS
+.TP
+.BR -c ", " --configure
+Configure Easy Switcher interactively.
+.TP
+.BR -r ", " --run
+Run Easy Switcher daemon.
+.TP
+.BR -d ", " --debug
+Run Easy Switcher in debug mode, showing verbose input/output events.
+.TP
+.BR -h ", " --help
+Display this help message.
+
+.SH CONFIGURATION
+Configuration file is stored at:
+.I /etc/easy-switcher/default2.conf
+
+Parameters include:
+
+.TP
+.B layout-switch
+Scancode or combination of keys used to switch keyboard layout. Example:
+.I layout-switch=29+42
+
+.TP
+.B convert-key
+Scancode of the key used to correct text. Default is double SHIFT:
+.I convert-key=0
+
+.TP
+.B delay
+Processing delay in milliseconds. Helps system handle events correctly:
+.I delay=10
+
+.TP
+.B blacklist
+List of device UIDs to ignore, separated by commas.
+
+.SH EXAMPLES
+Run configuration:
+.RS
+$ sudo easy-switcher --configure
+.RE
+
+Run daemon:
+.RS
+$ sudo easy-switcher --run
+.RE
+
+Run daemon in debug mode:
+.RS
+$ sudo easy-switcher --debug
+.RE
+
+.SH EXIT STATUS
+.B easy-switcher
+returns 0 on success, and a non-zero value if an error occurs during configuration
+or runtime.
+
+.SH BUGS
+Report bugs to <your-email@example.com> or GitHub repository.
+
+.SH SEE ALSO
+showkey(1), systemd(1)
+
+.SH AUTHOR
+Oleg
+

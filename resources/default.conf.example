@@ -1,0 +1,47 @@
+[Easy Switcher]
+# Easy Switcher configuration file.
+
+# Scancode of the key or key combination used to switch
+# the keyboard layout in your system.
+# Key combinations are supported; use '+' as a delimiter.
+# Run 'sudo showkey' to find your key scancodes.
+# Examples:
+# layout-switch=125
+# layout-switch=29+42
+
+layout-switch=
+
+
+# Scancode of the key used to correct the entered text.
+# Key combinations are not supported.
+# Double SHIFT is used by default; set 0 to use it.
+# Run 'sudo showkey' to find your key scancodes.
+# Example:
+# convert-key=0
+
+convert-key=
+
+
+# Easy Switcher waits a small delay before sending keys.
+# This helps your system handle all events correctly.
+# Smaller delay makes switching faster, but may cause errors.
+# If you see wrong or mixed symbols, try to increase the delay.
+# Default delay value is 10 ms.
+# Example:
+# delay=10
+
+delay=
+
+
+# If you get unwanted input from a specific device,
+# add its UID to the blacklist below.
+# Easy Switcher will ignore all blacklisted devices.
+# Use commas (,) to separate multiple UIDs.
+# Run 'sudo easy-switcher --debug' to list your devices' UIDs.
+# Examples:
+# blacklist=0000:0000:0000:0000:0000000000000000
+# blacklist=0000:0000:0000:0000:0000000000000000,0000:0000:0000:0000:0000000000000000
+
+blacklist=
+
+
