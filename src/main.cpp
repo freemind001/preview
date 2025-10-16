@@ -301,10 +301,10 @@ bool configure() {
             loop.add_handler(fd, [&input_keys](int fd) {
                 int code, value;
                 while (reader.fetch(fd, code, value)) {
-                    if (!conv.is_up(value)) {
-                        std::cout << code << " " << value << std::endl;
+                    if (conv.is_down(value)) {
                         input_keys.push_back(code);
-                    } else {
+                    }
+                    if (conv.is_up(value) && !input_keys.empty()) {
                         loop.stop();
                     }
                 }
@@ -342,6 +342,7 @@ bool configure() {
                     << "  - Keys that move cursor: ← ↑ → ↓ TAB PAGEUP PAGEDOWN etc.\n"
                     << "  - Special keys: CTRL ALT SHIFT BACKSPACE DEL etc.\n\n"
                     << "Waiting for your input..." << std::endl;
+            input_keys.clear();
             reader.flush();
             loop.run(60000);
             break;

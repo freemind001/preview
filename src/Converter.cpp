@@ -274,6 +274,10 @@ bool Converter::is_up(int value) const {
     return value == K_UP;
 }
 
+bool Converter::is_down(int value) const {
+    return value == K_DOWN;
+}
+
 // Check if the tail of the buffer matches a given pattern.
 // Each Pattern contains:
 //   - ev.code  : key code to match (or ANY_SHIFT as a wildcard for any shift key)
