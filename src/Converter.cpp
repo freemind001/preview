@@ -151,11 +151,11 @@ std::vector<KeyEvent> Converter::convert(Action action) const {
 
     // switch layout
     result.push_back({ls_keys[0], K_DOWN});
-    result.push_back({ls_keys[0], K_UP});
     if (ls_keys[1] != 0) {
         result.push_back({ls_keys[1], K_DOWN});
         result.push_back({ls_keys[1], K_UP});
     }
+    result.push_back({ls_keys[0], K_UP});
 
     int start_index = 0;
 

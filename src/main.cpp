@@ -84,8 +84,9 @@ void device_handler(int watcher_fd) {
                 } else {
                     std::string uid = reader.get_device_uid(device_fd);
                     std::string name = reader.get_device_name(device_fd);
-                    if (debug_mode) std::cout << "Added device " << path << ": " << name << ", UID=" << uid <<
-                                    std::endl;
+                    if (debug_mode)
+                        std::cout << "Added device " << path << ": " << name << ", UID=" << uid <<
+                                std::endl;
                 }
             } else {
                 if (debug_mode) std::cout << "Skipped device " << path << ": " << reader.err << std::endl;
@@ -300,12 +301,11 @@ bool configure() {
             loop.add_handler(fd, [&input_keys](int fd) {
                 int code, value;
                 while (reader.fetch(fd, code, value)) {
-                    if (!conv.is_key(code)) {
-                        if (!conv.is_up(value)) {
-                            input_keys.push_back(code);
-                        } else {
-                            loop.stop();
-                        }
+                    if (!conv.is_up(value)) {
+                        std::cout << code << " " << value << std::endl;
+                        input_keys.push_back(code);
+                    } else {
+                        loop.stop();
                     }
                 }
             });
