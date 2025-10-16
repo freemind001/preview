@@ -1,3 +1,4 @@
+sudo apt install cmake libevdev-dev  
 git clone https://github.com/freemind001/preview.git  
 cd preview  
 mkdir build  
