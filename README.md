@@ -1,4 +1,4 @@
-git clone https://github.com/freemind001/preview.git
+git clone https://github.com/freemind001/preview.git\n
 cd preview
 mkdir build
 cd build
