@@ -27,16 +27,13 @@ Config conf;
 bool debug_mode = false;
 
 void signal_handler(int signum) {
-    const char *name = "UNKNOWN";
+    const char *name;
     switch (signum) {
-        case SIGINT: name = "SIGINT";
-            break;
-        case SIGHUP: name = "SIGHUP";
-            break;
-        case SIGQUIT: name = "SIGQUIT";
-            break;
-        case SIGTERM: name = "SIGTERM";
-            break;
+        case SIGINT:  name = "SIGINT";  break;
+        case SIGHUP:  name = "SIGHUP";  break;
+        case SIGQUIT: name = "SIGQUIT"; break;
+        case SIGTERM: name = "SIGTERM"; break;
+        default:      name = "OTHER";  break;
     }
 
     std::cout << "\nGot exit signal (" << name << "). Bye." << std::endl;
@@ -54,10 +51,11 @@ void input_handler(int device_fd) {
             std::cout << "Buffer: " << conv.get_buffer_dump() << std::endl;
         }
 
-        Action action_needed;
-        action_needed = conv.process();
+        Action action_needed = conv.process();
 
         if (action_needed != None) {
+            std::cout << "Pattern detected, converting..." << std::endl;
+
             for (const auto &ev: conv.convert(action_needed)) {
                 vk.emit_key(ev.code, ev.value);
                 if (debug_mode) {
@@ -236,7 +234,7 @@ bool run() {
     }
 
     return true;
-};
+}
 
 bool configure() {
     // 1. Config params
@@ -292,6 +290,9 @@ bool configure() {
         std::cerr << reader.err << std::endl;
         return false;
     }
+
+    std::string uid = vk.get_uid();
+    reader.add_to_blacklist(uid);
 
     bool connected;
     std::string path;
@@ -383,7 +384,7 @@ bool configure() {
         ls_keys[1] = input_keys[1];
         std::cout << "Captured key combination: " << reader.get_key_name(ls_keys[0]) << "+"
                 << reader.get_key_name(ls_keys[1]) << "\n" << std::endl;
-    };
+    }
 
 
     // 6. Save config
@@ -455,7 +456,7 @@ bool configure() {
     std::cout << "Configuration is successfully saved." << std::endl;
     std::cout << "See " << CONFIG_FILE << " to edit additional parameters." << std::endl;
     return true;
-};
+}
 
 void show_help() {
     std::cout << "Easy Switcher - keyboard layout switcher v" << VERSION << "\n"

@@ -227,14 +227,6 @@ std::string Converter::get_buffer_dump() const {
 
     std::string out;
     for (const auto &ev : buffer_) {
-        std::string name;
-
-        const char *keyname = libevdev_event_code_get_name(EV_KEY, ev.code);
-        if (keyname)
-            name = keyname;
-        else
-            name = std::to_string(ev.code);
-
         std::string state;
         switch (ev.value) {
             case K_DOWN:   state = "DOWN";   break;
@@ -243,7 +235,21 @@ std::string Converter::get_buffer_dump() const {
             default:       state = std::to_string(ev.value); break;
         }
 
-        out += "<" + name + " " + state + ">";
+        std::string item;
+        if (const char *keyname = libevdev_event_code_get_name(EV_KEY, ev.code)) {
+            item = keyname;
+            if (item.rfind("KEY_", 0) == 0) {
+                item = item.substr(4);
+            }
+        } else {
+            item = std::to_string(ev.code);
+        }
+
+        if (is_shift(ev.code) || ev.code == conv_key) {
+            item += "_" + state;
+        }
+
+        out += item + " ";
     }
 
     return out;
