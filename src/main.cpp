@@ -45,7 +45,7 @@ void input_handler(int device_fd) {
             Action action_needed = conv.process();
 
             if (action_needed != None) {
-                std::cout << "Convert pattern detected, processing..." << std::endl;
+                if (debug_mode) std::cout << "Convert pattern detected, processing..." << std::endl;
 
                 for (const auto &ev: conv.convert(action_needed)) {
                     vk.emit_key(ev.code, ev.value);
@@ -245,13 +245,13 @@ bool configure() {
         } else {
             delay = 10;
             blacklist = "";
-            std::cout << "Failed.\n"
-                    << CONFIG_FILE << " is corrupt. A new config file will be created." << std::endl;
+            std::cout << "Broken.\n"
+                    << CONFIG_FILE << " is broken. A new config file will be created." << std::endl;
         }
     } else {
         delay = 10;
         blacklist = "";
-        std::cout << "Failed.\n"
+        std::cout << "Not found.\n"
                 << conf.err << "\n"
                 << "A new config file will be created." << std::endl;
     }
