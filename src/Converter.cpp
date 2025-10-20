@@ -35,26 +35,28 @@ Converter::~Converter() {
 }
 
 // Write key event to internal buffer
-void Converter::push(int code, int value) {
+// Returns true only if buffer is changed
+bool Converter::push(int code, int value) {
     // clear the buffer if a "killer" key (like Tab, Ctrl, mouse button, etc.) is pressed
-    if (is_killer(code)) {
+    if (is_killer(code) && !is_repeat(value)) {
         clear_buffer();
-        return;
+        return true;
     }
 
     // if the user-defined convert key is pressed, add it to the buffer without repeats
-    if (conv_key != 0 && code == conv_key && value != K_REPEAT) {
+    if (conv_key != 0 && code == conv_key && !is_repeat(value)) {
         buffer_.push_back({code, value});
-        return;
+        return true;
     }
 
-    // if a shift key is pressed, always add it to the buffer
-    if (is_shift(code)) {
+    // if a shift key is pressed, add it to the buffer without repeats
+    if (is_shift(code) && !is_repeat(value)) {
         buffer_.push_back({code, value});
-        return;
+        return true;
     }
 
     // if backspace is pressed, remove the most recent non-shift key from the buffer
+    // ignore up, repeat is treated as down
     if (is_backspace(code) && !is_up(value)) {
         for (int i = buffer_.size() - 1; i >= 0; --i) {
             if (!is_shift(buffer_[i].code)) {
@@ -62,12 +64,17 @@ void Converter::push(int code, int value) {
                 break;
             }
         }
+        return true;
     }
 
     // if a regular key is pressed, add it to the buffer
+    // ignore up, repeat is treated as down
     if (is_key(code) && !is_up(value)) {
-        buffer_.push_back({code, 1});
+        buffer_.push_back({code, K_DOWN});
+        return true;
     }
+
+    return false;
 }
 
 
@@ -105,6 +112,18 @@ Action Converter::process() {
             trim_buffer();
             return ConvertAll;
         }
+
+        // 3. just switch layout with shifts, if buffer has no letters
+        if (buffer_.size() == 4 &&
+            buffer_matches_pattern({
+                {ANY_SHIFT, K_DOWN, true},
+                {ANY_SHIFT, K_UP, true},
+                {ANY_SHIFT, K_DOWN, true},
+                {ANY_SHIFT, K_UP, true}
+            })) {
+            trim_buffer();
+            return ConvertAll;
+        }
     } else {
         // converters triggered by a user-defined key
 
@@ -136,6 +155,16 @@ Action Converter::process() {
             {ANY_SHIFT, K_UP, true},
             {conv_key, K_UP, true}
         })) {
+            trim_buffer();
+            return ConvertAll;
+        }
+
+        // 4. just switch layout with user-defined key, if buffer has no letters
+        if (buffer_.size() == 2 &&
+            buffer_matches_pattern({
+                {conv_key, K_DOWN, true},
+                {conv_key, K_UP, true}
+            })) {
             trim_buffer();
             return ConvertAll;
         }
@@ -226,13 +255,17 @@ std::string Converter::get_buffer_dump() const {
     if (buffer_.empty()) return "(empty)";
 
     std::string out;
-    for (const auto &ev : buffer_) {
+    for (const auto &ev: buffer_) {
         std::string state;
         switch (ev.value) {
-            case K_DOWN:   state = "DOWN";   break;
-            case K_UP:     state = "UP";     break;
-            case K_REPEAT: state = "REPEAT"; break;
-            default:       state = std::to_string(ev.value); break;
+            case K_DOWN: state = "DOWN";
+                break;
+            case K_UP: state = "UP";
+                break;
+            case K_REPEAT: state = "REPEAT";
+                break;
+            default: state = std::to_string(ev.value);
+                break;
         }
 
         std::string item;
@@ -282,6 +315,10 @@ bool Converter::is_up(int value) const {
 
 bool Converter::is_down(int value) const {
     return value == K_DOWN;
+}
+
+bool Converter::is_repeat(int value) const {
+    return value == K_REPEAT;
 }
 
 // Check if the tail of the buffer matches a given pattern.

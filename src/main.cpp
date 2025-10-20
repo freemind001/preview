@@ -27,44 +27,36 @@ Config conf;
 bool debug_mode = false;
 
 void signal_handler(int signum) {
-    const char *name;
-    switch (signum) {
-        case SIGINT:  name = "SIGINT";  break;
-        case SIGHUP:  name = "SIGHUP";  break;
-        case SIGQUIT: name = "SIGQUIT"; break;
-        case SIGTERM: name = "SIGTERM"; break;
-        default:      name = "OTHER";  break;
-    }
-
-    std::cout << "\nGot exit signal (" << name << "). Bye." << std::endl;
+    std::cout << "\nGot exit signal (" << signum << "). Bye." << std::endl;
     loop.stop();
 }
 
 void input_handler(int device_fd) {
     int code, value;
     while (reader.fetch(device_fd, code, value)) {
-        conv.push(code, value);
-        if (debug_mode) {
-            std::cout << "Input event: " << reader.get_key_name(code) << " "
-                    << reader.get_key_state(value) << " from: "
-                    << reader.get_device_name(device_fd) << std::endl;
-            std::cout << "Buffer: " << conv.get_buffer_dump() << std::endl;
-        }
-
-        Action action_needed = conv.process();
-
-        if (action_needed != None) {
-            std::cout << "Pattern detected, converting..." << std::endl;
-
-            for (const auto &ev: conv.convert(action_needed)) {
-                vk.emit_key(ev.code, ev.value);
-                if (debug_mode) {
-                    std::cout << "Output: " << reader.get_key_name(ev.code) << " "
-                            << reader.get_key_state(ev.value) << std::endl;
-                }
+        if (conv.push(code, value)) {
+            if (debug_mode) {
+                std::cout << "Input event: " << reader.get_key_name(code) << " "
+                        << reader.get_key_state(value) << " from: "
+                        << reader.get_device_name(device_fd) << std::endl;
+                std::cout << "Buffer: " << conv.get_buffer_dump() << std::endl;
             }
-            reader.flush();
-            if (debug_mode) std::cout << "Buffer: " << conv.get_buffer_dump() << std::endl;
+
+            Action action_needed = conv.process();
+
+            if (action_needed != None) {
+                std::cout << "Convert pattern detected, processing..." << std::endl;
+
+                for (const auto &ev: conv.convert(action_needed)) {
+                    vk.emit_key(ev.code, ev.value);
+                    if (debug_mode) {
+                        std::cout << "Output: " << reader.get_key_name(ev.code) << " "
+                                << reader.get_key_state(ev.value) << std::endl;
+                    }
+                }
+                reader.flush();
+                if (debug_mode) std::cout << "Buffer: " << conv.get_buffer_dump() << std::endl;
+            }
         }
     }
 }
@@ -103,6 +95,7 @@ void device_handler(int watcher_fd) {
 bool run() {
     std::cout << "Easy Switcher v" << VERSION << " started" << std::endl;
 
+    // Initialization
     if (debug_mode) std::cout << "Initializing..." << std::endl;
 
     struct sigaction sa{};
@@ -146,6 +139,7 @@ bool run() {
         return false;
     }
 
+    // Reading config
     if (debug_mode) std::cout << "Loading configuration..." << std::endl;
 
     if (conf.open(CONFIG_FILE)) {
@@ -227,6 +221,7 @@ bool run() {
     }
     if (debug_mode) std::cout << "Configuration file loaded." << std::endl;
 
+    // Start main loop
     if (debug_mode) std::cout << "Starting event loop..." << std::endl;
     if (!loop.run()) {
         std::cerr << loop.err << std::endl;
@@ -237,18 +232,11 @@ bool run() {
 }
 
 bool configure() {
-    // 1. Config params
-    int conv_key; // key to convert text
-    int ls_keys[2] = {0, 0}; // key combo that switches layout
-    int delay; // processing delay (ms)
-    std::string blacklist;
-
-    std::string choice;
-    std::vector<unsigned short> input_keys{};
-
-    // 2. Read existing config
+    // Read existing config
     std::cout << "Checking existing config...";
 
+    int delay;
+    std::string blacklist;
     if (conf.open(CONFIG_FILE)) {
         if (conf.get_int("Easy Switcher", "delay", delay, 10) &&
             conf.get_string("Easy Switcher", "blacklist", blacklist, "")
@@ -256,18 +244,20 @@ bool configure() {
             std::cout << "Done." << std::endl;
         } else {
             delay = 10;
+            blacklist = "";
             std::cout << "Failed.\n"
                     << CONFIG_FILE << " is corrupt. A new config file will be created." << std::endl;
         }
     } else {
         delay = 10;
+        blacklist = "";
         std::cout << "Failed.\n"
                 << conf.err << "\n"
                 << "A new config file will be created." << std::endl;
     }
 
 
-    // 3. Init devices
+    // Init devices
     std::cout << "Scanning keyboards...";
 
     if (!loop.init()) {
@@ -296,9 +286,11 @@ bool configure() {
 
     bool connected;
     std::string path;
+    std::vector<unsigned short> input_keys{};
     while (manager.fetch(path, connected)) {
         int fd = reader.add_device(path);
         if (fd != -1) {
+            // lambda to handle key input during configuration
             loop.add_handler(fd, [&input_keys](int fd) {
                 int code, value;
                 while (reader.fetch(fd, code, value)) {
@@ -321,7 +313,8 @@ bool configure() {
 
     std::cout << "Done.\n" << std::endl;
 
-    // 4. Set convert key
+    // Set convert key
+    int conv_key; // key to convert text
     std::cout << "Please set the key combination you will use to correct text.\n";
     std::cout << "You can use the default combination or define your own.\n";
     std::cout << "The default combination is:\n";
@@ -329,6 +322,7 @@ bool configure() {
     std::cout << " - double SHIFT while holding the other SHIFT to correct the whole text.\n\n";
     std::cout << "Do you want to use the default combination? (y,n) ";
 
+    std::string choice;
     while (true) {
         std::getline(std::cin, choice);
         if (choice == "y" || choice == "Y") {
@@ -364,7 +358,8 @@ bool configure() {
     }
 
 
-    // 5. Set layout switcher
+    // Set layout switcher
+    int ls_keys[2] = {0, 0}; // key combo that switches layout in OS (system setting)
     std::cout << "Please specify the key that is currently used to switch the keyboard layout in your system.\n"
             << "Press the key or key combination.\n"
             << "Waiting for your input..." << std::endl;
@@ -387,7 +382,7 @@ bool configure() {
     }
 
 
-    // 6. Save config
+    // Save config
     std::cout << "Saving configuration..." << std::endl;
 
     char config_dir[sizeof(CONFIG_FILE)];

@@ -32,7 +32,7 @@ public:
 
     ~Converter();
 
-    void push(int code, int value);
+    bool push(int code, int value);
 
     Action process();
 
@@ -53,6 +53,8 @@ public:
     bool is_up(int value) const;
 
     bool is_down(int value) const;
+
+    bool is_repeat(int value) const;
 
 private:
     std::vector<KeyEvent> buffer_;
