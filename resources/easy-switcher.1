@@ -9,8 +9,10 @@ easy-switcher \- keyboard layout switcher and text correction utility
 
 .SH DESCRIPTION
 .B easy-switcher
- is a keyboard layout switcher and input corrector for Linux.
-It runs as a daemon in your system, is independent from your desktop environment and windowing system, works with the keyboard directly via kernel input.
+is a daemon and configuration tool to manage keyboard layouts, convert input keys,
+and ignore specific input devices. It reads configuration from
+.I /etc/easy-switcher/default2.conf
+and can run in debug mode to show.
 
 .SH OPTIONS
 .TP
@@ -28,7 +30,7 @@ Display this help message.
 
 .SH CONFIGURATION
 Configuration file is stored at:
-.I /etc/easy-switcher/default.conf
+.I /etc/easy-switcher/default2.conf
 
 Parameters include:
 
@@ -73,11 +75,11 @@ returns 0 on success, and a non-zero value if an error occurs during configurati
 or runtime.
 
 .SH BUGS
-Report bugs.
+Report bugs to <your-email@example.com> or GitHub repository.
 
 .SH SEE ALSO
 showkey(1), systemd(1)
 
 .SH AUTHOR
-me
+Oleg
 

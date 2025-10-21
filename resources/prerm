@@ -1,0 +1,7 @@
+# resources/prerm
+#!/bin/sh
+set -e
+systemctl stop easy-switcher.service || true
+systemctl disable easy-switcher.service || true
+exit 0
+

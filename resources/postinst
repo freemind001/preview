@@ -1,0 +1,7 @@
+# resources/postinst
+#!/bin/sh
+set -e
+systemctl daemon-reload || true
+systemctl enable easy-switcher.service || true
+exit 0
+

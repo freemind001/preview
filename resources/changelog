@@ -1,0 +1,36 @@
+easy-switcher (0.5) unstable; urgency=medium
+
+  * First C++ build
+  * Added double-Shift as the default conversion key combination
+  * Added keyboard autodetection
+  * Added keyboard hot-plug support
+
+ -- freemind <easy-switcher@mail.ru>  Mon, 20 Oct 2025 10:00:00 +0300
+
+easy-switcher (0.4) unstable; urgency=medium
+
+  * Improved error handling
+  * Minor improvements
+
+ -- freemind <easy-switcher@mail.ru>  Tue, 04 Feb 2025 00:00:00 +0300
+
+easy-switcher (0.3) unstable; urgency=medium
+
+  * Improved conversion algorithm
+
+ -- freemind <easy-switcher@mail.ru>  Fri, 23 Feb 2024 00:00:00 +0300
+
+easy-switcher (0.2) unstable; urgency=medium
+
+  * Improved conversion algorithm
+  * Added support for system layout switch shortcuts
+  * Added "true" daemon mode
+
+ -- freemind <easy-switcher@mail.ru>  Sun, 03 Sep 2023 00:00:00 +0300
+
+easy-switcher (0.1) unstable; urgency=medium
+
+  * First public release
+
+ -- freemind <easy-switcher@mail.ru>  Wed, 12 Apr 2023 00:00:00 +0300
+
