@@ -57,8 +57,9 @@ bool Converter::push(int code, int value) {
 
     // if backspace is pressed, remove the most recent non-shift key from the buffer.
     // ignore key-up events; backspace repeat is treated as key-down.
-    // then remove trailing shift down/up pairs.
+    // then remove trailing shift down/up pairs and artifacts.
     if (is_backspace(code) && !is_up(value)) {
+        // non-shift key
         for (int i = buffer_.size() - 1; i >= 0; --i) {
             if (!is_shift(buffer_[i].code)) {
                 buffer_.erase(buffer_.begin() + i);
@@ -66,6 +67,7 @@ bool Converter::push(int code, int value) {
             }
         }
 
+        // shift down/up
         while (buffer_.size() >= 2) {
             if (buffer_matches_pattern({
                     {KEY_LEFTSHIFT, K_DOWN, true},
@@ -75,8 +77,22 @@ bool Converter::push(int code, int value) {
                     {KEY_RIGHTSHIFT, K_UP, true}
                 })
             ) {
-                buffer_.pop_back();
-                buffer_.pop_back();
+                buffer_.erase(buffer_.end() - 2, buffer_.end());
+            } else {
+                break;
+            }
+        }
+
+        // double shift down/up artifacts
+        while (buffer_.size() >= 4) {
+            if (buffer_matches_pattern({
+                    {ANY_SHIFT, K_DOWN, true},
+                    {ANY_SHIFT, K_DOWN, true},
+                    {ANY_SHIFT, K_UP, true},
+                    {ANY_SHIFT, K_UP, true}
+                })
+            ) {
+                buffer_.erase(buffer_.end() - 4, buffer_.end());
             } else {
                 break;
             }
